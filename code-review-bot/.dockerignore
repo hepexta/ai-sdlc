@@ -1,0 +1,11 @@
+.venv
+.git
+.pytest_cache
+__pycache__
+*.pyc
+out
+.crb
+tests
+docs
+*.md
+!src/code_review_bot/skills/**

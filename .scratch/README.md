@@ -28,6 +28,7 @@ The conventions adapt Matt Pocock's local-markdown issue tracker (`.scratch/<fea
 Rules:
 
 - **One issue per file.** Never combine several issues into one document.
+- **Hard size limit: 500 lines per issue.** Target 300–450. The issue is the readable entry point; move detail to `code-review-bot/docs/` or `<slug>/spec.md` and link it. Never truncate a requirement — relocate it. See [AGENTS.md](../AGENTS.md).
 - **Numbering is monotonic.** `0001`, `0002`, … Zero-pad to four digits. Never reuse or renumber an ID.
 - **Slugs are kebab-case** and describe the outcome, not the implementation (`code-review-bot`, not `add-fastapi-endpoint`).
 - **Supporting detail goes in the matching `<slug>/` folder**, so the intake issue stays readable. Link back from the issue.
@@ -42,7 +43,6 @@ Every issue starts with this block, immediately below the H1:
 
 ```markdown
 **Status:** Draft
-**Labels:** Draft
 **Type:** Feature
 **Project:** code-review-bot
 **Created:** 2026-11-11
@@ -50,7 +50,7 @@ Every issue starts with this block, immediately below the H1:
 **Owner:** unassigned
 ```
 
-- `Status` and `Labels` must agree. The status is the one state label currently applied.
+- `Status` can be one of 'Draft', 'In Progress', 'In Review', 'Done'. The status is the one state label currently applied.
 - `Type` is `Feature`, `Bug`, `Chore`, or `Research`. It is not a label; it never changes the workflow state.
 - `Project` is the folder name under `ai-sdlc/` that the work belongs to.
 - `Owner` is a person or `unassigned`. An unassigned issue may sit in `Draft`; it may not sit in `In Progress`.
@@ -198,7 +198,7 @@ Keep the index below current whenever an issue is created or changes status.
 
 | ID | Title | Status | Project | Updated |
 |---|---|---|---|---|
-| [0001](./0001-code-review-bot.md) | AI-accelerated Java/Python code review bot | Draft | code-review-bot | 2026-11-11 |
+| [0001](./0001-code-review-bot.md) | AI-accelerated Java/Python code review bot | In Progress | code-review-bot | 2026-11-11 |
 
 ---
 

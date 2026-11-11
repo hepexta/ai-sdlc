@@ -11,6 +11,8 @@
 Copy this file to .scratch/NNNN-{slug}.md.
 Keep all six sections, in this order. Delete the guidance comments once filled.
 Status and Labels must match: Draft | In Progress | In Review | Done.
+Keep the finished issue at or below 500 lines (target 300–450); move detail
+to code-review-bot/docs/ or <slug>/spec.md and link it. See ../AGENTS.md.
 See README.md for the workflow, definitions of ready/done, and label rules.
 Replace every {placeholder}; leaving one in a finished issue is a smell.
 -->
@@ -22,14 +24,6 @@ Quote the request as it was actually made. Preserve wording, typos, and language
 Do not "clean it up" — future agents need the original intent. Then separate your
 interpretation clearly.
 -->
-
-> {Verbatim user request. Use a blockquote; include the full relevant message.}
-
-**Interpretation:**
-
-- {What I believe the user means by ambiguous terms}
-- {What I am assuming is included}
-- {What I am assuming is excluded}
 
 ## Description
 
@@ -124,13 +118,6 @@ verifiable on its own. "Blocked by" uses the issue/ticket numbers.
 - [ ] {Testable criterion 2}
 - [ ] {Operational criterion: deploy, rollback, observability}
 
-### Validation
-
-- **Unit / contract:** {What is tested in isolation.}
-- **Integration / end-to-end:** {What runs against real boundaries.}
-- **Quality / performance:** {Benchmark, load, accuracy, or cost threshold.}
-- **Security:** {Threats tested and controls verified.}
-
 ### Risks and rollback
 
 | Risk | Likelihood | Impact | Mitigation |
@@ -147,10 +134,10 @@ a safe default so work is not blocked. Mark the few that genuinely must be decid
 before In Progress. Delete rows once resolved, or record the resolution in Notes.
 -->
 
-| ID | Question | Default if unanswered | Impact if wrong | Needed by |
-|---|---|---|---|---|
-| Q1 | {Decision that is still open} | {Safe default} | {What changes if the default is wrong} | Draft / In Progress |
-| Q2 | {Decision} | {Default} | {Impact} | {Milestone} |
+| ID | Question                      | Default if unanswered | Impact if wrong                        | Needed by           |
+|----|-------------------------------|-----------------------|----------------------------------------|---------------------|
+| Q1 | {Decision that is still open} | {Safe default}        | {What changes if the default is wrong} | Draft / In Progress |
+| Q2 | {Decision}                    | {Default}             | {Impact}                               | {Milestone}         |
 
 ## Notes
 
@@ -159,19 +146,11 @@ Research findings, decisions and their rationale, alternatives considered,
 glossary, and a dated changelog. Link, don't paste, where possible.
 -->
 
-### Research
-
-- [Dossier or source](URL) — {finding, date, version/star snapshot.}
-
 ### Decisions
 
 | Date | Decision | Rationale | Alternatives rejected |
 |---|---|---|---|
 | YYYY-MM-DD | {Decision} | {Why} | {What else was considered} |
-
-### Glossary
-
-- **{Term}** — {project-specific meaning; avoid synonyms.}
 
 ### Changelog
 
