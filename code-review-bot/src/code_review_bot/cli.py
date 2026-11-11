@@ -21,13 +21,13 @@ def _setup_logging(level: str, fmt: str) -> None:
 
 def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--pr", help="PR URL or owner/repo#number")
-    parser.add_argument("--dry-run", action="store_true", help="render and write artifacts, post nothing")
-    parser.add_argument("--force", action="store_true", help="override the AI Reviewed skip")
+    parser.add_argument("--dry-run", action="store_true", default=None, help="render and write artifacts, post nothing")
+    parser.add_argument("--force", action="store_true", default=None, help="override the AI Reviewed skip")
     parser.add_argument("--output", help="artifact directory")
     parser.add_argument("--workspace", help="existing git checkout (testing)")
     parser.add_argument("--base-rev", help="base revision for --workspace")
     parser.add_argument("--head-rev", help="head revision for --workspace")
-    parser.add_argument("--fake-opencode", action="store_true", help="use fake agent responses")
+    parser.add_argument("--fake-opencode", action="store_true", default=None, help="use fake agent responses")
     parser.add_argument("--fake-dir", help="directory with <agent>.json fake responses")
     parser.add_argument("--effort", choices=["auto", "low", "medium", "high"], help="manual effort override")
     parser.add_argument("--log-level", default="info", choices=["debug", "info", "warning", "error"])

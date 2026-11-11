@@ -17,12 +17,14 @@ AI-accelerated review for Java and Python pull requests. One container reviews o
 2. Skips before clone/LLM when the exact `AI Reviewed` label is present; `FORCE=true` removes it and re-runs.
 3. Checks out the PR head and merge base; builds a `code-review-graph` brief (Java/Python, SQLite, no external DB).
 4. Selects effort from changed volume (`small`/`medium`/`large`), escalating Security and Principal for sensitive diffs.
-5. **Senior:** high-recall candidate findings with quoted evidence and impact.
-6. **Security:** conditional deep pass with CWE/ASVS refs and fail-closed behavior.
-7. **Principal:** audits candidates, rejects noise into a triage ledger, adds at most `MAX_ADDED` material findings, and writes the final human-style comment.
+5. **Senior:** high-recall candidate findings with quoted evidence and impact. Uses the checked-in [mr-reviewer](./src/code_review_bot/skills/mr-reviewer/SKILL.md) skill.
+6. **Security:** conditional deep pass with CWE/ASVS refs and fail-closed behavior. Uses [security-reviewer](./src/code_review_bot/skills/security-reviewer/SKILL.md).
+7. **Principal:** audits candidates, rejects noise into a triage ledger, adds at most `MAX_ADDED` material findings, and writes the final human-style comment. Uses [mr-review-critic](./src/code_review_bot/skills/mr-review-critic/SKILL.md).
 8. Validates every inline anchor and suggestion range against the right side of the diff; invalid suggestions become prose or summary-only.
 9. Posts a sticky summary plus one review with inline comments, optional applyable suggestions, hidden `crb:` markers, and the label last.
 10. Writes `review.json`, `summary.md`, and `triage.json`; dry-run writes without posting.
+
+The checked-in skills are copied into the workspace `.opencode/skill/` directory for each run. They are the review method; the role prompts provide the output schema and pipeline constraints.
 
 The agents are read-only: no edit, shell, web, or subagents. The GitHub token stays in the orchestrator. The OpenCode process receives the LLM key through `OPENCODE_CONFIG_CONTENT` in its environment, not a workspace file. The pod never holds a Vault token.
 

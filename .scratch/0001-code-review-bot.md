@@ -333,14 +333,16 @@ Full cited dossier: [2026-11-11 landscape research](./research/2026-11-11-code-r
 ### Implementation (2026-11-11)
 
 - Python 3.12 package, CLI, Dockerfile, K8s Job/ExternalSecret/NetworkPolicy in [`code-review-bot`](../code-review-bot). Implementation notes: [IMPLEMENTATION.md](../code-review-bot/docs/IMPLEMENTATION.md).
+- Checked-in review skills: `mr-reviewer`, `mr-review-critic`, and `security-reviewer` under `code-review-bot/src/code_review_bot/skills/`; copied into `.opencode/skill/` and named by the role prompts.
 - OpenCode 1.17.3 invoked with `--format json --variant --dir --pure`; provider key injected through `OPENCODE_CONFIG_CONTENT`, never written to the workspace.
 - `code-review-graph` 2.4.0 pinned; graph brief required, MCP optional/off.
-- 25 tests pass: unit, config, diff/anchors, graph, PR-ref clone, fake GitHub/OpenCode E2E, real OpenCode + fake LLM, Docker E2E, manifests.
+- 28 tests pass: unit, config, diff/anchors, graph, PR-ref clone, fake GitHub/OpenCode E2E, real OpenCode + fake LLM, Docker E2E, manifests, checked-in skills.
 - Local kind smoke (`scripts/k8s-smoke.ps1`) ran the image as a Job with read-only rootfs and a Secret-mounted config; passed.
 - Still outstanding: live Vault/ESO verification, real GitHub pilot, 30-PR eval, blind voice sample.
 
 ### Changelog
 
+- **2026-11-11 — revision 9.** Added checked-in `mr-reviewer`, `mr-review-critic`, and `security-reviewer` skills; agent prompts name the role skill and the runner copies all three into `.opencode/skill/`.
 - **2026-11-11 — revision 8.** Implementation started: Python pipeline, Docker image, OpenCode 1.17.3 v1 config, K8s Job/ExternalSecret/NetworkPolicy, fake and real E2E tests, kind smoke. Issue moved to `In Progress`.
 
 - **2026-11-11 — revision 7.** Clarified that MCP is not in the LLM path: OpenCode calls the LLM endpoint directly, and the graph MCP is an optional `GRAPH_MCP=on` enhancement; v1 uses a precomputed graph brief with MCP off.

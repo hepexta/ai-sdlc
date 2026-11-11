@@ -31,6 +31,35 @@ def test_models_fallback_and_secret_file(tmp_path: Path) -> None:
     assert cfg.llm_api_key == "value"
 
 
+def test_opencode_provider_and_anonymous_dry_run() -> None:
+    cfg = Config.from_env(
+        {
+            "PR_URL": "https://github.com/acme/service/pull/1",
+            "LLM_PROVIDER": "opencode",
+            "LLM_MODEL": "opencode/deepseek-v4.1-flash-free",
+            "DRY_RUN": "true",
+            "ALLOW_ANONYMOUS_GITHUB": "true",
+        }
+    )
+    assert cfg.llm_provider == "opencode"
+    assert cfg.llm_api_key == ""
+    assert cfg.github_token == ""
+    assert cfg.model_ref("senior") == "opencode/deepseek-v4.1-flash-free"
+
+
+def test_opencode_requires_provider_model() -> None:
+    with pytest.raises(ConfigError):
+        Config.from_env(
+            {
+                "PR_URL": "https://github.com/acme/service/pull/1",
+                "LLM_PROVIDER": "opencode",
+                "LLM_MODEL": "bare-model",
+                "DRY_RUN": "true",
+                "ALLOW_ANONYMOUS_GITHUB": "true",
+            }
+        )
+
+
 def test_missing_model_and_bad_effort(tmp_path: Path) -> None:
     secret = tmp_path / "secret"
     secret.write_text("value", encoding="utf-8")

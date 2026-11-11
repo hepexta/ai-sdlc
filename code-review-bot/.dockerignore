@@ -8,3 +8,4 @@ out
 tests
 docs
 *.md
+!src/code_review_bot/skills/**

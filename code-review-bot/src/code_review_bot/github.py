@@ -38,14 +38,16 @@ class GitHubClient:
         self.base_url = base_url.rstrip("/")
         self.owner = owner
         self.repo = repo
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "code-review-bot/0.1",
+        }
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         self._client = httpx.Client(
             base_url=self.base_url,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "code-review-bot/0.1",
-            },
+            headers=headers,
             timeout=timeout,
             follow_redirects=True,
         )

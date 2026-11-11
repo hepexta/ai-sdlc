@@ -107,6 +107,7 @@ class Config:
     github_api_url: str
     github_token: str
     github_clone_url: str
+    llm_provider: str
     llm_base_url: str
     llm_api_key: str
     models: Mapping[str, str]
@@ -156,10 +157,13 @@ class Config:
 
     @property
     def provider_id(self) -> str:
-        return "review-llm"
+        return self.llm_provider
 
     def model_ref(self, role: str) -> str:
-        return f"{self.provider_id}/{self.models[role]}"
+        model = self.models[role]
+        if self.llm_provider == "opencode":
+            return model
+        return f"review-llm/{model}"
 
     @classmethod
     def from_env(
@@ -179,21 +183,30 @@ class Config:
         effort: str | None = None,
     ) -> "Config":
         e = dict(os.environ if env is None else env)
+        dry_run_value = _bool(e, "DRY_RUN") if dry_run is None else dry_run
+        provider = _choice(
+            e, "LLM_PROVIDER", "openai-compatible", {"openai-compatible", "opencode"}
+        )
         pr = parse_pr_reference(
             pr_override or e.get("PR_URL"),
             e.get("GITHUB_REPOSITORY"),
             e.get("PR_NUMBER"),
         )
         base_url = (e.get("LLM_BASE_URL") or "").strip()
-        if not base_url:
-            raise ConfigError("LLM_BASE_URL is required")
-        if not base_url.startswith(("https://", "http://")):
-            raise ConfigError("LLM_BASE_URL must be an http(s) URL")
-        allow_insecure = _bool(e, "ALLOW_INSECURE_LLM")
-        if base_url.startswith("http://") and not allow_insecure:
-            raise ConfigError("use https for LLM_BASE_URL, or set ALLOW_INSECURE_LLM=true for local tests")
+        if provider == "opencode":
+            base_url = ""
+        else:
+            if not base_url:
+                raise ConfigError("LLM_BASE_URL is required")
+            if not base_url.startswith(("https://", "http://")):
+                raise ConfigError("LLM_BASE_URL must be an http(s) URL")
+            allow_insecure = _bool(e, "ALLOW_INSECURE_LLM")
+            if base_url.startswith("http://") and not allow_insecure:
+                raise ConfigError("use https for LLM_BASE_URL, or set ALLOW_INSECURE_LLM=true for local tests")
 
         fallback = (e.get("LLM_MODEL") or "").strip()
+        if provider == "opencode" and not fallback:
+            fallback = "opencode/deepseek-v4.1-flash-free"
         models = {
             "senior": (e.get("LLM_MODEL_SENIOR") or fallback).strip(),
             "principal": (e.get("LLM_MODEL_PRINCIPAL") or fallback).strip(),
@@ -204,6 +217,12 @@ class Config:
             raise ConfigError(
                 "set LLM_MODEL or all role models; missing: " + ", ".join(missing)
             )
+        if provider == "opencode":
+            bad = [role for role, model in models.items() if "/" not in model]
+            if bad:
+                raise ConfigError(
+                    "LLM_PROVIDER=opencode requires full provider/model IDs; bad: " + ", ".join(bad)
+                )
         effort_mode = _choice(e, "EFFORT_MODE", "variant", {"variant", "prompt"})
         if effort_mode == "variant":
             bad = [role for role, model in models.items() if "#" in model]
@@ -232,8 +251,14 @@ class Config:
         if label and (len(label) > 50 or "\n" in label):
             raise ConfigError("AI_REVIEWED_LABEL must be <= 50 characters and one line")
 
-        api_key = _read_secret(e, "LLM_API_KEY")
-        github_token = _read_secret(e, "GITHUB_TOKEN")
+        api_key = "" if provider == "opencode" else _read_secret(e, "LLM_API_KEY")
+        try:
+            github_token = _read_secret(e, "GITHUB_TOKEN")
+        except ConfigError:
+            if dry_run_value and _bool(e, "ALLOW_ANONYMOUS_GITHUB"):
+                github_token = ""
+            else:
+                raise
 
         effort = (effort or e.get("REASONING_EFFORT") or "auto").strip().lower()
         if effort not in {"auto", "low", "medium", "high"}:
@@ -247,6 +272,7 @@ class Config:
             github_api_url=(e.get("GITHUB_API_URL") or "https://api.github.com").rstrip("/"),
             github_token=github_token,
             github_clone_url=clone_url,
+            llm_provider=provider,
             llm_base_url=base_url.rstrip("/"),
             llm_api_key=api_key,
             models=models,
@@ -284,7 +310,7 @@ class Config:
             low_max_files=low_files,
             medium_max_files=medium_files,
             token_accounting=_choice(e, "TOKEN_ACCOUNTING", "auto", {"auto", "provider", "estimate"}),
-            dry_run=_bool(e, "DRY_RUN") if dry_run is None else dry_run,
+            dry_run=dry_run_value,
             force=_bool(e, "FORCE") if force is None else force,
             output_dir=Path(output or e.get("OUTPUT_DIR") or "out"),
             workspace=Path(workspace or e["CRB_WORKSPACE"]) if (workspace or e.get("CRB_WORKSPACE")) else None,
@@ -301,6 +327,7 @@ class Config:
         return {
             "pr": self.pr.slug + "#" + str(self.pr.number),
             "github_api_url": self.github_api_url,
+            "llm_provider": self.llm_provider,
             "llm_base_url": self.llm_base_url,
             "models": dict(self.models),
             "label": self.label,

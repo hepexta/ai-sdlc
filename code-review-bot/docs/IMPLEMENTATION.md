@@ -21,7 +21,7 @@
 | `graph.py` | `code-review-graph build` + `detect-changes --brief`; `auto`/`required`/`off` |
 | `effort.py` | Volume class and Senior/Security/Principal effort map |
 | `brief.py` | Context assembly for Senior/Security/Principal, including output schemas |
-| `opencode_runner.py` | v1 config injection, skills, subprocess, NDJSON text/usage parsing, one repair |
+| `opencode_runner.py` | v1 config injection, checked-in skill copying, subprocess, NDJSON text/usage parsing, one repair |
 | `triage.py` | Candidate merging, caps, suggestion validation, critical veto, gate |
 | `style.py` | Human-comment lint/strip, suggestion block, secret redaction, summary |
 | `publish.py` | Sticky summary, inline review, fingerprint dedupe, label last |
@@ -43,6 +43,7 @@
 ## Important behavior
 
 - **No MCP in the LLM path.** OpenCode calls `LLM_BASE_URL` directly. `GRAPH_MCP=off` is the v1 default; the graph is a precomputed brief. `GRAPH_MCP=on` is optional.
+- **Review skills are checked in.** `src/code_review_bot/skills/{mr-reviewer,mr-review-critic,security-reviewer}/SKILL.md` are copied to `.opencode/skill/` on every run; the three agent prompts name the matching skill.
 - **Secrets never enter the workspace.** The provider key is in `OPENCODE_CONFIG_CONTENT` in the child environment; agent `edit`/`bash`/`webfetch`/`task` and `external_directory` are denied.
 - **Repo instructions are quarantined.** `AGENTS.md`, `CLAUDE.md`, `opencode.json`, `.opencode/`, `.claude/`, `.agents/`, and `.env*` are moved aside before OpenCode starts. Their standards text is copied to `.crb/standards.md` for the brief only.
 - **Suggestions** are emitted only when the range is on the right side of the diff and the replacement is non-empty/not fenced. Invalid suggestions are dropped and counted.
@@ -65,7 +66,7 @@
 
 ## Test evidence (2026-11-11)
 
-- 25 pytest tests.
+- 28 pytest tests.
 - Fake GitHub + fake OpenCode E2E: summary, two inline comments, suggestions, label, skip, forced re-review.
 - Real OpenCode 1.17.3 + fake OpenAI-compatible LLM: config, agent, JSON event, token usage.
 - Docker E2E: built image, real OpenCode in container, graph build, fake GitHub/LLM, secret files, label.
