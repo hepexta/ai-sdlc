@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import shutil
 from pathlib import Path
 
@@ -8,7 +7,7 @@ import pytest
 
 from code_review_bot.config import Config
 from code_review_bot.effort import choose_effort
-from code_review_bot.opencode_runner import AgentSpec, OpenCodeRunner, parse_json_object
+from code_review_bot.opencode_runner import AgentSpec, OpenCodeRunner, parse_events, parse_json_object
 
 from .conftest import make_fixture_repo
 from .fake_llm import FakeLLM
@@ -54,3 +53,17 @@ def test_real_opencode_v1_config_and_events(tmp_path: Path) -> None:
         assert result.usage.input_tokens == 100
         assert result.usage.output_tokens == 20
         assert llm.requests
+
+
+def test_event_parser_ignores_tool_output() -> None:
+    stdout = "\n".join(
+        [
+            '{"type":"tool","part":{"type":"tool","state":{"output":"SECRET TOOL OUTPUT"}}}',
+            '{"type":"text","part":{"type":"text","text":"{\\"findings\\": []}"}}',
+            '{"type":"step_finish","part":{"tokens":{"input":10,"output":2,"total":12}}}',
+        ]
+    )
+    text, usage = parse_events(stdout)
+    assert text == '{"findings": []}'
+    assert "TOOL OUTPUT" not in text
+    assert usage.total_tokens == 12

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from collections import Counter
 
 from .config import Config
@@ -8,7 +7,6 @@ from .diff import DiffView, anchor_finding, validate_suggestion
 from .models import (
     Finding,
     PrincipalOutput,
-    ReviewReport,
     Summary,
     Triage,
     TriageRejection,

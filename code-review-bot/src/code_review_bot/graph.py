@@ -30,6 +30,8 @@ def _run(args: list[str], cwd: Path, timeout: int) -> tuple[int, str, str]:
             cwd=str(cwd),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
             check=False,
         )
@@ -69,6 +71,8 @@ def build_graph(cfg: Config, workspace: Path, base_sha: str) -> GraphResult:
             brief = (out or "").strip()[:8000]
         else:
             log.warning("graph brief failed: %s", (err or out)[:400])
+        if not brief and cfg.graph_mode == "required":
+            raise GraphRequiredError("graph build succeeded but the change brief is empty")
         return GraphResult(status="built" if brief else "partial", brief=brief, error="")
     except GraphRequiredError:
         raise

@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import json
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 from .config import Config
 from .github import GitHubClient, GitHubError
-from .models import Finding, ReviewReport
+from .models import ReviewReport
 from .style import fingerprint, render_comment, render_summary
 
 log = logging.getLogger(__name__)

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import fnmatch
-import json
 import logging
 import re
 import time
@@ -15,7 +14,7 @@ from .brief import (
     write_brief,
 )
 from .config import Config, ConfigError
-from .diff import context_files, reviewable_source_files, source_change_counts
+from .diff import reviewable_source_files, source_change_counts
 from .effort import choose_effort
 from .github import GitHubClient, GitHubError, PullRequest
 from .gitops import WorkspaceError, prepare_workspace
@@ -27,8 +26,6 @@ from .models import (
     PRInfo,
     PrincipalOutput,
     ReviewReport,
-    Summary,
-    Triage,
 )
 from .opencode_runner import AgentError, AgentSpec, OpenCodeRunner, parse_json_object
 from .publish import Publisher
@@ -239,6 +236,7 @@ def run_review(cfg: Config) -> int:
         senior_raw, senior_info = _run_json(runner, senior_spec, senior_path, cfg)
         senior = assign_ids(parse_candidates(senior_raw, "senior"), "S")[: cfg.max_candidates]
         senior_info.candidates = len(senior)
+        senior_info.findings = len(senior)
 
         security: list[Finding] = []
         security_info = PassInfo(enabled=False, effort=plan.security)

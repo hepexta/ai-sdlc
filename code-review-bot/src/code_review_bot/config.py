@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import re
 import stat
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 from urllib.parse import urlparse
@@ -224,7 +224,7 @@ class Config:
         medium_files = _int(e, "EFFORT_MEDIUM_MAX_FILES", 20, low_files + 1)
 
         max_inline = _int(e, "MAX_INLINE", 10, 0)
-        max_suggestions = _int(e, "MAX_SUGGESTIONS", 10, 0)
+        max_suggestions = _int(e, "MAX_SUGGESTIONS", min(10, max_inline), 0)
         if max_suggestions > max_inline:
             raise ConfigError("MAX_SUGGESTIONS cannot exceed MAX_INLINE")
 

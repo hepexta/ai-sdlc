@@ -3,8 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from code_review_bot.config import Config
 from code_review_bot.review import run_review
 
@@ -80,6 +78,8 @@ def test_dry_run_writes_without_posting(tmp_path: Path) -> None:
         assert run_review(Config.from_env(env)) == 0
         assert not fake.reviews
         assert not fake.issue_comments
+        assert not fake.labels
+        assert not fake.pull["labels"]
         assert (tmp_path / "out" / "review.json").exists()
         report = json.loads((tmp_path / "out" / "review.json").read_text(encoding="utf-8"))
         assert report["summary"]["issues"]["posted"] == 2

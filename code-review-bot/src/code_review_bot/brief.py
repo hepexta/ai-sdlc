@@ -122,7 +122,7 @@ def build_senior_brief(
     linked_issue: str = "",
 ) -> str:
     selected = reviewable_source_files(view, cfg.max_files)
-    diff_text = compact_diff(view, selected, max_chars=45_000)
+    diff_text = compact_diff(view, selected, max_chars=min(45_000, cfg.max_diff_bytes))
     standards = _read_standards(workspace)
     issue_text = f"\n## Linked issue / intent\n{linked_issue[:4000]}\n" if linked_issue else ""
     return (
@@ -156,7 +156,7 @@ def build_security_brief(
     effort: EffortPlan,
 ) -> str:
     selected = reviewable_source_files(view, cfg.max_files)
-    diff_text = compact_diff(view, selected, max_chars=50_000)
+    diff_text = compact_diff(view, selected, max_chars=min(50_000, cfg.max_diff_bytes))
     manifests = context_files(view)
     manifest_text = "\n".join(f"- {f.path} (+{f.added}/-{f.removed})" for f in manifests)
     return (
@@ -191,7 +191,7 @@ def build_principal_brief(
     linked_issue: str = "",
 ) -> str:
     selected = reviewable_source_files(view, cfg.max_files)
-    diff_text = compact_diff(view, selected, max_chars=50_000)
+    diff_text = compact_diff(view, selected, max_chars=min(50_000, cfg.max_diff_bytes))
     payload = {
         "senior_candidates": [c.model_dump(mode="json") for c in candidates],
         "security_candidates": [c.model_dump(mode="json") for c in security_findings],

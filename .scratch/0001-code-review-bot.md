@@ -332,10 +332,10 @@ Full cited dossier: [2026-11-11 landscape research](./research/2026-11-11-code-r
 
 ### Implementation (2026-11-11)
 
-- Python 3.12 package, CLI, Dockerfile, K8s Job/ExternalSecret/NetworkPolicy in [`code-review-bot`](../code-review-bot).
+- Python 3.12 package, CLI, Dockerfile, K8s Job/ExternalSecret/NetworkPolicy in [`code-review-bot`](../code-review-bot). Implementation notes: [IMPLEMENTATION.md](../code-review-bot/docs/IMPLEMENTATION.md).
 - OpenCode 1.17.3 invoked with `--format json --variant --dir --pure`; provider key injected through `OPENCODE_CONFIG_CONTENT`, never written to the workspace.
 - `code-review-graph` 2.4.0 pinned; graph brief required, MCP optional/off.
-- 17 tests pass: unit, fake GitHub/OpenCode E2E, real OpenCode + fake LLM, Docker E2E, manifests.
+- 25 tests pass: unit, config, diff/anchors, graph, PR-ref clone, fake GitHub/OpenCode E2E, real OpenCode + fake LLM, Docker E2E, manifests.
 - Local kind smoke (`scripts/k8s-smoke.ps1`) ran the image as a Job with read-only rootfs and a Secret-mounted config; passed.
 - Still outstanding: live Vault/ESO verification, real GitHub pilot, 30-PR eval, blind voice sample.
 

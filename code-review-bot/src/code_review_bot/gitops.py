@@ -47,6 +47,8 @@ def _run_git(args: list[str], cwd: Path, env: dict[str, str], timeout: int = 120
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=timeout,
         check=False,
     )
@@ -171,6 +173,6 @@ def prepare_workspace(cfg: Config, pr: PullRequest) -> Workspace:
 
 def resolve_head(path: Path) -> str:
     proc = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=str(path), capture_output=True, text=True, check=False
+        ["git", "rev-parse", "HEAD"], cwd=str(path), capture_output=True, text=True, encoding="utf-8", errors="replace", check=False
     )
     return proc.stdout.strip() if proc.returncode == 0 else ""

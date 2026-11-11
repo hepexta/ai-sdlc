@@ -198,7 +198,7 @@ Keep the index below current whenever an issue is created or changes status.
 
 | ID | Title | Status | Project | Updated |
 |---|---|---|---|---|
-| [0001](./0001-code-review-bot.md) | AI-accelerated Java/Python code review bot | Draft | code-review-bot | 2026-11-11 |
+| [0001](./0001-code-review-bot.md) | AI-accelerated Java/Python code review bot | In Progress | code-review-bot | 2026-11-11 |
 
 ---
 

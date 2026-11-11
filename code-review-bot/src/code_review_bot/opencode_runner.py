@@ -271,12 +271,22 @@ class OpenCodeRunner:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             start_new_session=os.name != "nt",
         )
         try:
             stdout, stderr = proc.communicate(timeout=self.cfg.agent_timeout)
         except subprocess.TimeoutExpired:
-            proc.kill()
+            try:
+                if os.name != "nt":
+                    import signal
+
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                else:
+                    proc.kill()
+            except OSError:
+                proc.kill()
             stdout, stderr = proc.communicate()
             raise AgentError(f"{spec.name} timed out after {self.cfg.agent_timeout}s") from None
         if proc.returncode != 0:
@@ -345,7 +355,12 @@ def parse_events(stdout: str) -> tuple[str, PassUsage]:
             event = json.loads(line)
         except json.JSONDecodeError:
             continue
-        _collect_text(event, texts)
+        if isinstance(event, dict):
+            etype = event.get("type")
+            if etype in {"text", "message", "assistant"} or (
+                etype is None and isinstance(event.get("text"), str)
+            ):
+                _collect_text(event, texts)
         if not isinstance(event, dict):
             continue
         part = event.get("part") if isinstance(event.get("part"), dict) else {}

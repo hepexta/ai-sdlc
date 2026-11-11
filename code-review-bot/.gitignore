@@ -6,6 +6,7 @@ __pycache__/
 htmlcov/
 out/
 .crb/
+*.log
 .env
 .env.*
 !.env.example

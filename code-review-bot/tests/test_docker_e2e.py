@@ -75,7 +75,7 @@ def test_docker_real_opencode_e2e(tmp_path: Path) -> None:
             "-e",
             f"CRB_HEAD_REV={head}",
             "-e",
-            "GRAPH_MODE=off",
+            "GRAPH_MODE=auto",
             "-e",
             "OUTPUT_DIR=/out",
             "-e",
@@ -106,3 +106,4 @@ def test_docker_real_opencode_e2e(tmp_path: Path) -> None:
         report = json.loads((output / "review.json").read_text(encoding="utf-8"))
         assert report["summary"]["label"]["applied"] is True
         assert report["summary"]["tokens"]["total"] > 0
+        assert report["summary"]["coverage"]["graph"] in {"built", "partial"}

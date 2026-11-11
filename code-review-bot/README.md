@@ -8,6 +8,7 @@ AI-accelerated review for Java and Python pull requests. One container reviews o
 - **Detailed plan:** [PLAN.md](./docs/PLAN.md)
 - **Delivery/secrets:** [DELIVERY.md](./docs/DELIVERY.md), [SECRETS.md](./docs/SECRETS.md)
 - **Comment voice:** [COMMENT_STYLE.md](./docs/COMMENT_STYLE.md)
+- **Implementation notes:** [IMPLEMENTATION.md](./docs/IMPLEMENTATION.md)
 - **Kubernetes:** [deploy/k8s](./deploy/k8s)
 
 ## What works
@@ -48,9 +49,9 @@ The earlier planning docs assumed OpenCode 2.x; the implementation and [PLAN.md]
 | GitHub clone URL | No | `GITHUB_SERVER_URL` (GHES) or `GITHUB_CLONE_URL` (local tests) |
 | Label | No | `AI_REVIEWED_LABEL`, default `AI Reviewed`; empty disables |
 | Force/dry run | No | `FORCE`, `DRY_RUN` |
-| Graph | No | `GRAPH_MODE=auto|required|off`; `GRAPH_MCP=off` (v1 default) |
-| Effort | No | `REASONING_EFFORT=auto|low|medium|high`; `EFFORT_MODE=variant|prompt` |
-| Gate | No | `FAIL_ON=none|critical|major` |
+| Graph | No | `GRAPH_MODE=auto, required, or off`; `GRAPH_MCP=off` (v1 default) |
+| Effort | No | `REASONING_EFFORT=auto, low, medium, or high`; `EFFORT_MODE=variant or prompt` |
+| Gate | No | `FAIL_ON=none, critical, or major` |
 
 Full defaults and bounds are in [PLAN.md](./docs/PLAN.md#input-contract). Secret values must not be put in the issue, Git, manifests, or command lines.
 
