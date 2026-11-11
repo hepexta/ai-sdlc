@@ -1,6 +1,7 @@
 # 0001 — AI-Accelerated Java/Python Code Review Bot
 
 **Status:** Draft
+**Labels:** Draft
 **Type:** Feature
 **Project:** code-review-bot
 **Created:** 2026-11-11
@@ -139,8 +140,8 @@ Full validation/defaults: [Input contract](../code-review-bot/docs/PLAN.md#input
 
 | Piece | Snapshot | Use |
 |---|---|---|
-| [OpenCode](https://github.com/anomalyco/opencode) | 226,021★, MIT, `7bac5ba` | Headless runtime; skills/agents/MCP |
-| [code-review-graph](https://github.com/tirth8205/code-review-graph) | 32,713★, MIT, `29d8bd9` | Java/Python graph, MCP, SQLite |
+| [OpenCode](https://github.com/anomalyco/opencode) | 226,021★, MIT, `7bac5ba` | Headless runtime; skills/agents |
+| [code-review-graph](https://github.com/tirth8205/code-review-graph) | 32,713★, MIT, `29d8bd9` | Java/Python graph, optional MCP, SQLite |
 | [mattpocock/skills](https://github.com/mattpocock/skills) | 321,447★, MIT, `4ae2317` | Two-axis review spine |
 | [obra/superpowers](https://github.com/obra/superpowers) | 315,986★, MIT, `22f0b46` | Verification-before-completion |
 | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | 115,511★, MIT, `301b02b` | Five axes, severity, drop-if-ruled-out |
@@ -173,12 +174,14 @@ GitHub PR → Orchestrator (Python, one-shot)
   └─ normalize → summary + inline comments + suggestions → AI Reviewed
 ```
 
+**LLM vs MCP:** OpenCode's provider client calls `LLM_BASE_URL` directly over HTTPS — no local proxy and no MCP in the LLM path. MCP, if enabled, only exposes code-graph tools to the agent. It holds no credentials and needs no HTTP port.
+
 ### Runtime flow
 
 1. Validate inputs; preflight distinct models.
 2. Fetch PR + labels. If `AI Reviewed` and not `FORCE`, exit 0 before clone/LLM. If forced, remove label.
 3. Check out head, merge-base, sanitize, size limits.
-4. Build/update graph; degrade if allowed.
+4. Build/update graph; capture compact brief; optional MCP only if `GRAPH_MCP=on`; degrade if allowed.
 5. Build brief; select effort from volume; redact secrets.
 6. Senior → candidates.
 7. Security if triggered; failure on required pass = exit 8.
@@ -238,11 +241,11 @@ GitHub PR → Orchestrator (Python, one-shot)
 
 ### Reasoning effort
 
-| Volume | Rule                     | Senior | Security | Principal |
-|--------|--------------------------|--------|----------|-----------|
-| small  | ≤150 lines and ≤5 files  | low    | medium   | medium    |
-| medium | ≤600 lines and ≤20 files | medium | high     | high      |
-| large  | larger                   | high   | high     | high      |
+| Volume | Rule | Senior | Security | Principal |
+|---|---|---|---|---|
+| small | ≤150 lines and ≤5 files | low | medium | medium |
+| medium | ≤600 lines and ≤20 files | medium | high | high |
+| large | larger | high | high | high |
 
 - Security-sensitive/high graph risk: Security + Principal high; Senior stays volume-based.
 - `EFFORT_MODE=variant` uses `#low/#medium/#high`; `prompt` fallback; record applied effort.
@@ -250,7 +253,8 @@ GitHub PR → Orchestrator (Python, one-shot)
 
 ### Platform
 
-- **Code graph:** `code-review-graph` build/update, 8 MCP tools, graph brief; `GRAPH_MODE=auto|required|off`.
+- **LLM path:** OpenCode calls `LLM_BASE_URL` directly; no local proxy and no MCP in LLM traffic.
+- **Code graph:** `code-review-graph` build/update + compact graph brief required; optional local stdio MCP only when `GRAPH_MCP=on` (default `off` in v1); `GRAPH_MODE=auto|required|off`.
 - **OpenCode:** generated config, read-only permissions, separate fresh sessions, JSON NDJSON; no `--auto`.
 - **GitHub:** sticky summary v4, inline review `COMMENT`, hidden fingerprints, label last; token scopes Metadata/Contents read, PR read-write, Issues read-write.
 - **Container:** non-root 10001, read-only rootfs, drop caps, 3 GiB / 1500 s, Job/initContainer; never a long-running sidecar.
@@ -268,17 +272,17 @@ GitHub PR → Orchestrator (Python, one-shot)
 
 ### Milestones
 
-| #  | Deliverable                                   | Blocked by |
-|----|-----------------------------------------------|------------|
-| 01 | Foundation: CLI/config/schema/fixtures/fakes  | —          |
-| 02 | GitHub intake, workspace, diff anchors        | 01         |
-| 03 | Code graph + MCP + fallback                   | 02         |
-| 04 | Senior review + volume/effort                 | 03         |
-| 05 | Security specialist + deep skill              | 03         |
-| 06 | Principal review + triage + suggestions       | 04, 05     |
-| 07 | Publishing: summary, label, idempotency, gate | 06         |
-| 08 | Container/K8s + Vault/ESO + docs              | 07         |
-| 09 | Eval, hardening, release `v0.1.0`             | 08         |
+| # | Deliverable | Blocked by |
+|---|---|---|
+| 01 | Foundation: CLI/config/schema/fixtures/fakes | — |
+| 02 | GitHub intake, workspace, diff anchors | 01 |
+| 03 | Code graph + brief + optional MCP + fallback | 02 |
+| 04 | Senior review + volume/effort | 03 |
+| 05 | Security specialist + deep skill | 03 |
+| 06 | Principal review + triage + suggestions | 04, 05 |
+| 07 | Publishing: summary, label, idempotency, gate | 06 |
+| 08 | Container/K8s + Vault/ESO + docs | 07 |
+| 09 | Eval, hardening, release `v0.1.0` | 08 |
 
 ### Risks and rollout
 
@@ -320,12 +324,14 @@ Full cited dossier: [2026-11-11 landscape research](./research/2026-11-11-code-r
 - `AI Reviewed` label is a manual gate; add last, skip by default, `FORCE` override.
 - Effort auto-selected from volume; variant/prompt fallback recorded.
 - Vault/ESO is the secret path; pod never holds a Vault token.
+- LLM traffic goes directly from OpenCode to `LLM_BASE_URL`; MCP is only an optional graph-tool transport, not an LLM proxy. v1 uses the precomputed graph brief and leaves MCP off.
 - Vendor and pin skills; no runtime skill fetch.
 - One-shot Job/initContainer; no long-running sidecar.
 - Comment-only by default; gate opt-in.
 
 ### Changelog
 
+- **2026-11-11 — revision 7.** Clarified that MCP is not in the LLM path: OpenCode calls the LLM endpoint directly, and the graph MCP is an optional `GRAPH_MCP=on` enhancement; v1 uses a precomputed graph brief with MCP off.
 - **2026-11-11 — revision 6.** Split the detailed plan into [PLAN.md](../code-review-bot/docs/PLAN.md), [DELIVERY.md](../code-review-bot/docs/DELIVERY.md), and [OPEN_QUESTIONS.md](../code-review-bot/docs/OPEN_QUESTIONS.md); this issue is now the ≤500-line entry point. Added the issue-size rule to [AGENTS.md](../AGENTS.md).
 - **2026-11-11 — revision 5.** Human-like comment voice, style lint, prose summary, schema 4.0.
 - **2026-11-11 — revision 4.** Suggestions, token/count summary, `AI Reviewed`, auto effort.
