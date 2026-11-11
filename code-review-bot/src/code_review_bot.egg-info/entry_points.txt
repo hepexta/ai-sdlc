@@ -1,0 +1,2 @@
+[console_scripts]
+crb = code_review_bot.cli:main

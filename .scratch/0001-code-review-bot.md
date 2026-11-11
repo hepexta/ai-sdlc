@@ -1,7 +1,7 @@
 # 0001 — AI-Accelerated Java/Python Code Review Bot
 
-**Status:** Draft
-**Labels:** Draft
+**Status:** In Progress
+**Labels:** In Progress
 **Type:** Feature
 **Project:** code-review-bot
 **Created:** 2026-11-11
@@ -328,8 +328,20 @@ Full cited dossier: [2026-11-11 landscape research](./research/2026-11-11-code-r
 - Vendor and pin skills; no runtime skill fetch.
 - One-shot Job/initContainer; no long-running sidecar.
 - Comment-only by default; gate opt-in.
+- Implemented against **OpenCode 1.17.3** (v1 `agent`/`permission`/`provider` config), not the 2.x config shape in the earlier planning draft. `GRAPH_MCP` stays off; the graph brief is the v1 path.
+
+### Implementation (2026-11-11)
+
+- Python 3.12 package, CLI, Dockerfile, K8s Job/ExternalSecret/NetworkPolicy in [`code-review-bot`](../code-review-bot).
+- OpenCode 1.17.3 invoked with `--format json --variant --dir --pure`; provider key injected through `OPENCODE_CONFIG_CONTENT`, never written to the workspace.
+- `code-review-graph` 2.4.0 pinned; graph brief required, MCP optional/off.
+- 17 tests pass: unit, fake GitHub/OpenCode E2E, real OpenCode + fake LLM, Docker E2E, manifests.
+- Local kind smoke (`scripts/k8s-smoke.ps1`) ran the image as a Job with read-only rootfs and a Secret-mounted config; passed.
+- Still outstanding: live Vault/ESO verification, real GitHub pilot, 30-PR eval, blind voice sample.
 
 ### Changelog
+
+- **2026-11-11 — revision 8.** Implementation started: Python pipeline, Docker image, OpenCode 1.17.3 v1 config, K8s Job/ExternalSecret/NetworkPolicy, fake and real E2E tests, kind smoke. Issue moved to `In Progress`.
 
 - **2026-11-11 — revision 7.** Clarified that MCP is not in the LLM path: OpenCode calls the LLM endpoint directly, and the graph MCP is an optional `GRAPH_MCP=on` enhancement; v1 uses a precomputed graph brief with MCP off.
 - **2026-11-11 — revision 6.** Split the detailed plan into [PLAN.md](../code-review-bot/docs/PLAN.md), [DELIVERY.md](../code-review-bot/docs/DELIVERY.md), and [OPEN_QUESTIONS.md](../code-review-bot/docs/OPEN_QUESTIONS.md); this issue is now the ≤500-line entry point. Added the issue-size rule to [AGENTS.md](../AGENTS.md).
@@ -341,7 +353,6 @@ Full cited dossier: [2026-11-11 landscape research](./research/2026-11-11-code-r
 
 ### Next actions
 
-1. Answer/accept P0 questions: Q1–Q4, Q15–Q17.
-2. Move to `In Progress`; create tickets `01`–`09`.
-3. Seed Vault path; verify `ExternalSecret`.
-4. Run the 20-comment voice sample before the pilot.
+1. Resolve/accept the remaining P0 questions: Q1–Q4, Q15–Q17.
+2. Seed the Vault path and verify the `ExternalSecret` against a live cluster.
+3. Run a real pilot PR, then the 30-PR eval and the 20-comment voice sample.

@@ -34,10 +34,10 @@ Job pod  ──  LLM_API_KEY_FILE=/run/secrets/llm_api_key
 
 Only two values are secrets. Everything else belongs in a ConfigMap or Job environment.
 
-| Value | Vault key | Kubernetes Secret key | Bot input |
-|---|---|---|---|
-| LLM API key | `llm_api_key` | `llm_api_key` | `LLM_API_KEY_FILE=/run/secrets/llm_api_key` |
-| GitHub token | `github_token` | `github_token` | `GITHUB_TOKEN_FILE=/run/secrets/github_token` |
+| Value        | Vault key      | Kubernetes Secret key | Bot input                                     |
+|--------------|----------------|-----------------------|-----------------------------------------------|
+| LLM API key  | `llm_api_key`  | `llm_api_key`         | `LLM_API_KEY_FILE=/run/secrets/llm_api_key`   |
+| GitHub token | `github_token` | `github_token`        | `GITHUB_TOKEN_FILE=/run/secrets/github_token` |
 
 Non-secret configuration (ConfigMap, not Vault): `LLM_BASE_URL`, `LLM_MODEL_SENIOR`, `LLM_MODEL_PRINCIPAL`, `LLM_MODEL_SECURITY`, `GITHUB_API_URL`, `FAIL_ON`, `SECURITY_PASS`, `MAX_*`, timeouts.
 
@@ -254,14 +254,14 @@ The Job never references Vault. It references the derived Secret:
 
 ## Rotation and recovery
 
-| Event | Action | Verification |
-|---|---|---|
-| LLM key or GitHub token rotated | `vault kv put` the new value; wait for ESO refresh (`1m` local / `5m` prod); create the next Job | `kubectl -n code-review get externalsecret code-review-bot-secrets -o jsonpath='{.status.conditions}'`; next Job uses the new value |
-| Derived Secret deleted | Nothing; ESO recreates it | `kubectl -n code-review get secret code-review-bot-secrets` |
-| Vault container restarted (local) | Re-run the seed script; ESO recovers once the path exists | ExternalSecret `Ready=True` |
-| Vault token expired/revoked (local) | Re-run `vault-seed.sh`; update `external-secrets/vault-token` as `addons-up.sh` does; ESO revalidates on its backoff | `kubectl -n external-secrets get secret vault-token`; ExternalSecret Ready |
-| ESO unavailable | The last derived Secret remains mounted; a new Job can still run with the last synced values, but rotation is stale | Alert on ExternalSecret `Ready=False`; fix ESO before relying on new values |
-| Suspected exposure | Rotate in Vault first, then restart/delete affected Jobs; revoke the old GitHub token/LLM key | Vault audit log + GitHub token revocation |
+| Event                               | Action                                                                                                               | Verification                                                                                                                        |
+|-------------------------------------|----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| LLM key or GitHub token rotated     | `vault kv put` the new value; wait for ESO refresh (`1m` local / `5m` prod); create the next Job                     | `kubectl -n code-review get externalsecret code-review-bot-secrets -o jsonpath='{.status.conditions}'`; next Job uses the new value |
+| Derived Secret deleted              | Nothing; ESO recreates it                                                                                            | `kubectl -n code-review get secret code-review-bot-secrets`                                                                         |
+| Vault container restarted (local)   | Re-run the seed script; ESO recovers once the path exists                                                            | ExternalSecret `Ready=True`                                                                                                         |
+| Vault token expired/revoked (local) | Re-run `vault-seed.sh`; update `external-secrets/vault-token` as `addons-up.sh` does; ESO revalidates on its backoff | `kubectl -n external-secrets get secret vault-token`; ExternalSecret Ready                                                          |
+| ESO unavailable                     | The last derived Secret remains mounted; a new Job can still run with the last synced values, but rotation is stale  | Alert on ExternalSecret `Ready=False`; fix ESO before relying on new values                                                         |
+| Suspected exposure                  | Rotate in Vault first, then restart/delete affected Jobs; revoke the old GitHub token/LLM key                        | Vault audit log + GitHub token revocation                                                                                           |
 
 A running Job keeps the Secret values it started with; because the workload is one-shot, the next Job is the reload boundary. If the bot ever becomes a long-running sidecar, use an explicit reload/restart strategy instead of assuming env/file updates propagate.
 
